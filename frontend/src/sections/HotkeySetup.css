@@ -1,0 +1,97 @@
+.hotkey-setup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.hotkey-setup-modal {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  padding: 1.5rem 1.75rem;
+  max-width: 440px;
+  width: 92%;
+}
+.hotkey-setup-modal h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+}
+.hotkey-setup-intro {
+  margin: 0 0 1rem;
+  color: #555;
+  font-size: 0.95rem;
+}
+.hotkey-setup-field {
+  margin-bottom: 1rem;
+}
+.hotkey-setup-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+.hotkey-setup-field input {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.hotkey-setup-error {
+  padding: 0.5rem 0.75rem;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+.hotkey-setup-steps {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+.hotkey-setup-steps-title {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.hotkey-setup-steps ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: #444;
+  line-height: 1.5;
+}
+.hotkey-setup-steps li {
+  margin-bottom: 0.4rem;
+}
+.hotkey-setup-steps code,
+.hotkey-setup-steps kbd {
+  background: #e9ecef;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+.hotkey-setup-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.hotkey-setup-primary {
+  padding: 0.55rem 1.1rem;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.hotkey-setup-primary:hover:not(:disabled) {
+  background: #0b5ed7;
+}
+.hotkey-setup-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

@@ -1,0 +1,55 @@
+.tasks-loading { padding: 1rem; color: #666; }
+.tasks-error {
+  padding: 0.5rem 0.75rem;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+.tasks-add {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+.tasks-add input {
+  flex: 1;
+  max-width: 280px;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+.tasks-add button {
+  padding: 0.5rem 1rem;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tasks-add button:disabled { opacity: 0.6; cursor: not-allowed; }
+.tasks-list { list-style: none; margin: 0; padding: 0; }
+.tasks-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+.tasks-item-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.tasks-item-name { flex: 1; }
+.tasks-item-delete {
+  padding: 0.2rem 0.4rem;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.tasks-item-delete:hover { color: #dc3545; }
+.tasks-empty { color: #666; margin-top: 1rem; }

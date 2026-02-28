@@ -1,0 +1,103 @@
+.log-loading { padding: 1rem; color: #666; }
+.log-error {
+  padding: 0.5rem 0.75rem;
+  background: #f8d7da;
+  color: #721c24;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+.log-running-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+.log-running-banner button {
+  padding: 0.35rem 0.75rem;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.log-task-select { margin-bottom: 1rem; }
+.log-task-select label { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; }
+.log-filter {
+  width: 100%;
+  max-width: 280px;
+  padding: 0.4rem 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+.log-task-select select {
+  width: 100%;
+  max-width: 320px;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+}
+.log-task-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+.log-task-chips .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: #f8f9fa;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.log-task-chips .chip.active { background: #e7f1ff; }
+.chip-color { width: 10px; height: 10px; border-radius: 50%; }
+.log-modes { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.log-modes button {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.log-modes button.active { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+.log-stopwatch button {
+  padding: 0.5rem 1rem;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.log-stopwatch button:disabled { opacity: 0.6; cursor: not-allowed; }
+.log-manual p { margin: 0 0 0.75rem; font-size: 0.9rem; color: #666; }
+.log-manual-date, .log-manual-range, .log-manual-duration {
+  margin-bottom: 0.75rem;
+}
+.log-manual label { display: block; margin-bottom: 0.2rem; font-size: 0.85rem; }
+.log-manual input[type="date"],
+.log-manual input[type="time"],
+.log-manual input[type="number"] {
+  padding: 0.4rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+}
+.log-manual button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.log-manual button:disabled { opacity: 0.6; cursor: not-allowed; }

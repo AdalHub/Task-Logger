@@ -2,9 +2,16 @@ import { useState, useEffect, useCallback } from 'react'
 import { api, type Activity as ActivityType, type StatsByTask } from '../api'
 import './Activity.css'
 
+/** API returns naive datetimes in UTC; ensure we parse as UTC so local display is correct. */
+function parseUtc(iso: string | null): Date | null {
+  if (!iso) return null
+  const s = iso.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(iso) ? iso : iso + 'Z'
+  return new Date(s)
+}
+
 function formatTime(d: string | null): string {
-  if (!d) return '—'
-  const dt = new Date(d)
+  const dt = parseUtc(d)
+  if (!dt) return '—'
   return dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 
@@ -24,6 +31,7 @@ export default function Activity() {
   const [stats, setStats] = useState<StatsByTask[]>([])
   const [statsRange, setStatsRange] = useState<'month' | 'year'>('month')
   const [loadingDay, setLoadingDay] = useState(false)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const loadDays = useCallback(async () => {
     try {
@@ -85,6 +93,19 @@ export default function Activity() {
     acc[a.task_id] = (acc[a.task_id] || 0) + a.duration_minutes
     return acc
   }, {} as Record<number, number>)
+
+  const handleDeleteActivity = async (activityId: number) => {
+    if (!selectedDay) return
+    if (!confirm('Delete this logged activity?')) return
+    setDeletingId(activityId)
+    try {
+      await api.deleteActivity(activityId)
+      setDayActivities((prev) => prev.filter((a) => a.id !== activityId))
+      loadDays()
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   return (
     <div className="activity">
@@ -165,6 +186,15 @@ export default function Activity() {
                         )}
                         <span className="activity-day-duration">{formatDuration(a.duration_minutes)}</span>
                       </div>
+                      <button
+                        type="button"
+                        className="activity-day-delete"
+                        onClick={() => handleDeleteActivity(a.id)}
+                        disabled={deletingId === a.id}
+                        aria-label="Delete activity"
+                      >
+                        ×
+                      </button>
                     </li>
                   ))}
                 </ul>

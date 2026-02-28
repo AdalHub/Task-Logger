@@ -1,14 +1,17 @@
 """
 Task Logger launcher: starts FastAPI server in a thread, system tray icon, and global hotkey.
 On hotkey or tray "Open", opens the default browser to the app.
+Run from anywhere: python C:\...\task_logger\launcher.py
 """
+import os
 import sys
 import threading
 import webbrowser
 from pathlib import Path
 
-# Ensure project root is on path
+# Project root (works when run as: python C:\path\to\launcher.py)
 ROOT = Path(__file__).resolve().parent
+os.chdir(ROOT)
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -115,11 +118,14 @@ def run_tray_and_hotkey() -> None:
 
 
 def main() -> None:
+    open_browser_on_start = "--open" in sys.argv
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
     # Give server a moment to bind
     import time
     time.sleep(0.5)
+    if open_browser_on_start:
+        open_app()
     run_tray_and_hotkey()
 
 

@@ -59,9 +59,23 @@
 .activity-day-item {
   display: flex;
   gap: 0.5rem;
+  align-items: flex-start;
   padding: 0.4rem 0;
   border-bottom: 1px solid #eee;
 }
+.activity-day-item .activity-day-info { flex: 1; min-width: 0; }
+.activity-day-delete {
+  flex-shrink: 0;
+  padding: 0.2rem 0.4rem;
+  border: none;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.activity-day-delete:hover:not(:disabled) { color: #dc3545; }
+.activity-day-delete:disabled { opacity: 0.5; cursor: not-allowed; }
 .activity-day-color {
   width: 12px;
   height: 12px;

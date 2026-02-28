@@ -227,3 +227,13 @@ def stop_activity(activity_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(activity)
     return _activity_to_response(activity)
+
+
+@router.delete("/{activity_id}", status_code=204)
+def delete_activity(activity_id: int, db: Session = Depends(get_db)):
+    """Delete a logged activity (e.g. from the calendar day view)."""
+    activity = db.query(Activity).filter(Activity.id == activity_id).first()
+    if not activity:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    db.delete(activity)
+    db.commit()

@@ -1,8 +1,8 @@
 """Pydantic schemas for API request/response."""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 
 class TaskCreate(BaseModel):
@@ -43,6 +43,14 @@ class ActivityResponse(BaseModel):
     no_time_assigned: bool
     display_time: Optional[datetime] = None
 
+    @field_serializer("start_time", "end_time", "logged_at", "display_time")
+    def serialize_datetime_utc(self, dt: Optional[datetime]) -> Optional[str]:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+
     class Config:
         from_attributes = True
 
@@ -53,6 +61,12 @@ class ActivityRunningResponse(BaseModel):
     task_name: str
     task_color: str
     start_time: datetime
+
+    @field_serializer("start_time")
+    def serialize_datetime_utc(self, dt: datetime) -> str:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
 
     class Config:
         from_attributes = True

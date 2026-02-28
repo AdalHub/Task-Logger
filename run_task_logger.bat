@@ -1,4 +1,2 @@
 @echo off
-cd /d "%~dp0"
-uv run python launcher.py
-pause
+"C:\Users\Adal\Documents\PROJECTS\task_logger\.venv\Scripts\pythonw.exe" "C:\Users\Adal\Documents\PROJECTS\task_logger\launcher.py" --open

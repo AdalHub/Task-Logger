@@ -104,6 +104,12 @@ export const api = {
     if (!r.ok) throw new Error(await r.text());
     return r.json();
   },
+  async deleteActivity(activityId: number): Promise<void> {
+    const r = await fetch(`${API_BASE}/api/activities/${activityId}`, {
+      method: 'DELETE',
+    });
+    if (!r.ok) throw new Error(await r.text());
+  },
   async logManual(body: {
     task_id: number;
     start_time?: string;

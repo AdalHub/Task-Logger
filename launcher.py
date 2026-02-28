@@ -1,11 +1,11 @@
 """
-Task Logger launcher: starts FastAPI server in a thread, system tray icon, and global hotkey.
+Task Logger launcher: starts FastAPI server in a subprocess, system tray icon, and global hotkey.
 On hotkey or tray "Open", opens the default browser to the app.
 Run from anywhere: python C:\...\task_logger\launcher.py
 """
 import os
+import subprocess
 import sys
-import threading
 import webbrowser
 from pathlib import Path
 
@@ -18,9 +18,38 @@ if str(ROOT) not in sys.path:
 PORT = 8765
 URL = f"http://localhost:{PORT}"
 
+# Server subprocess (so it binds reliably when run with pythonw)
+_server_process = None
+
 
 def open_app() -> None:
     webbrowser.open(URL)
+
+
+def start_server_process() -> None:
+    """Start the FastAPI server in a separate process (use python.exe so server runs like manual 'python run_server.py')."""
+    global _server_process
+    server_script = ROOT / "run_server.py"
+    # Use python.exe (not pythonw) for the server so it behaves like manual run; CREATE_NO_WINDOW hides the console
+    python_exe = Path(sys.executable)
+    if python_exe.name.lower() == "pythonw.exe":
+        python_exe = python_exe.parent / "python.exe"
+    cmd = [str(python_exe), str(server_script)]
+    creationflags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+    _server_process = subprocess.Popen(
+        cmd,
+        cwd=str(ROOT),
+        env=os.environ.copy(),
+        creationflags=creationflags,
+    )
+
+
+def stop_server_process() -> None:
+    global _server_process
+    if _server_process is not None:
+        _server_process.terminate()
+        _server_process.wait(timeout=5)
+        _server_process = None
 
 
 def get_hotkey_from_db() -> str:
@@ -39,14 +68,6 @@ def get_hotkey_from_db() -> str:
     except Exception:
         pass
     return "ctrl+alt+shift+l"
-
-
-def run_server() -> None:
-    import uvicorn
-    from backend.main import app
-    config = uvicorn.Config(app, host="127.0.0.1", port=PORT, log_level="warning")
-    server = uvicorn.Server(config)
-    server.run()
 
 
 def run_tray_and_hotkey() -> None:
@@ -97,13 +118,17 @@ def run_tray_and_hotkey() -> None:
     # Small 16x16 icon (dark square with "T")
     img = Image.new("RGBA", (16, 16), (0x22, 0x22, 0x22, 255))
     try:
+        def on_quit(icon):
+            stop_server_process()
+            icon.stop()
+
         icon = pystray.Icon(
             "task_logger",
             img,
             "Task Logger",
             menu=pystray.Menu(
                 pystray.MenuItem("Open", open_app, default=True),
-                pystray.MenuItem("Quit", lambda icon: icon.stop()),
+                pystray.MenuItem("Quit", on_quit),
             ),
         )
         icon.run()
@@ -118,12 +143,10 @@ def run_tray_and_hotkey() -> None:
 
 
 def main() -> None:
-    open_browser_on_start = "--open" in sys.argv
-    server_thread = threading.Thread(target=run_server, daemon=True)
-    server_thread.start()
-    # Give server a moment to bind
     import time
-    time.sleep(0.5)
+    open_browser_on_start = "--open" in sys.argv
+    start_server_process()
+    time.sleep(2.0)
     if open_browser_on_start:
         open_app()
     run_tray_and_hotkey()

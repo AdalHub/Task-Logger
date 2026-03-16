@@ -87,3 +87,11 @@ class StatsByTask(BaseModel):
     task_name: str
     task_color: str
     total_hours: float
+
+
+class StatsTimeSeriesPoint(BaseModel):
+    date: str
+    task_id: int
+    task_name: str
+    task_color: str
+    hours: float

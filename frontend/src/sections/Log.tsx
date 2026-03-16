@@ -100,7 +100,7 @@ export default function Log({ onRefresh }: LogProps) {
         await api.logManual({
           task_id: selectedTaskId,
           duration_minutes: mins,
-          logged_at: new Date().toISOString(),
+          logged_at: new Date(manualDate + 'T12:00:00').toISOString(),
         })
         setManualDuration('')
         await load()

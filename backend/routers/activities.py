@@ -3,6 +3,7 @@ from datetime import datetime, date, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, distinct
 
@@ -14,6 +15,7 @@ from backend.schemas import (
     ActivityResponse,
     ActivityRunningResponse,
     StatsByTask,
+    StatsTimeSeriesPoint,
 )
 
 router = APIRouter(prefix="/api/activities", tags=["activities"])
@@ -80,16 +82,30 @@ def list_activities(
     day: Optional[date] = Query(None),
     from_date: Optional[date] = Query(None),
     to_date: Optional[date] = Query(None),
+    from_datetime: Optional[str] = Query(None),
+    to_datetime: Optional[str] = Query(None),
 ):
-    """List activities, optionally filtered by day or date range."""
+    """List activities, optionally filtered by day or date range.
+    Use from_datetime/to_datetime (ISO) for the day panel so the selected day is in the user's local timezone."""
     q = db.query(Activity).join(Task).order_by(Activity.logged_at.desc())
-    if day is not None:
+    if from_datetime is not None and to_datetime is not None:
+        try:
+            start = datetime.fromisoformat(from_datetime.replace("Z", "+00:00"))
+            end = datetime.fromisoformat(to_datetime.replace("Z", "+00:00"))
+            if start.tzinfo:
+                start = start.replace(tzinfo=None)
+            if end.tzinfo:
+                end = end.replace(tzinfo=None)
+            q = q.filter(Activity.logged_at >= start, Activity.logged_at < end)
+        except (ValueError, TypeError):
+            pass
+    elif day is not None:
         start = datetime.combine(day, datetime.min.time())
         end = start + timedelta(days=1)
         q = q.filter(Activity.logged_at >= start, Activity.logged_at < end)
-    if from_date is not None:
+    if from_date is not None and from_datetime is None:
         q = q.filter(Activity.logged_at >= datetime.combine(from_date, datetime.min.time()))
-    if to_date is not None:
+    if to_date is not None and to_datetime is None:
         end = datetime.combine(to_date, datetime.min.time()) + timedelta(days=1)
         q = q.filter(Activity.logged_at < end)
     activities = q.all()
@@ -133,6 +149,95 @@ def stats_by_task(
         )
         for r in rows
     ]
+
+
+@router.get("/stats/time_series", response_model=list[StatsTimeSeriesPoint])
+def stats_time_series(
+    db: Session = Depends(get_db),
+    from_date: Optional[date] = Query(None),
+    to_date: Optional[date] = Query(None),
+):
+    """Daily hours per task for the date range (for line chart)."""
+    if from_date is None:
+        from_date = date.today() - timedelta(days=30)
+    if to_date is None:
+        to_date = date.today()
+    start_dt = datetime.combine(from_date, datetime.min.time())
+    end_dt = datetime.combine(to_date, datetime.min.time()) + timedelta(days=1)
+    rows = (
+        db.query(
+            func.date(Activity.logged_at).label("d"),
+            Task.id,
+            Task.name,
+            Task.color,
+            func.sum(Activity.duration_minutes).label("total_minutes"),
+        )
+        .join(Task, Activity.task_id == Task.id)
+        .filter(
+            Activity.logged_at >= start_dt,
+            Activity.logged_at < end_dt,
+        )
+        .group_by(func.date(Activity.logged_at), Task.id, Task.name, Task.color)
+        .all()
+    )
+    out = []
+    for r in rows:
+        d = r.d
+        if hasattr(d, "isoformat"):
+            d_str = d.isoformat()
+        else:
+            d_str = str(d)
+        out.append(
+            StatsTimeSeriesPoint(
+                date=d_str,
+                task_id=r.id,
+                task_name=r.name,
+                task_color=r.color,
+                hours=round(r.total_minutes / 60.0, 2),
+            )
+        )
+    return out
+
+
+@router.get("/export", response_class=PlainTextResponse)
+def export_log(
+    db: Session = Depends(get_db),
+    from_date: Optional[date] = Query(None),
+    to_date: Optional[date] = Query(None),
+) -> PlainTextResponse:
+    """Export a plain-text log of all days with activity and what was done."""
+    q = db.query(Activity).join(Task).order_by(Activity.logged_at.asc())
+    if from_date is not None:
+        q = q.filter(Activity.logged_at >= datetime.combine(from_date, datetime.min.time()))
+    if to_date is not None:
+        end = datetime.combine(to_date, datetime.min.time()) + timedelta(days=1)
+        q = q.filter(Activity.logged_at < end)
+    activities = q.all()
+    if not activities:
+        return PlainTextResponse("No activity logged yet.\n")
+
+    lines: list[str] = []
+    current_date: Optional[date] = None
+
+    for a in activities:
+        d = a.logged_at.date()
+        if current_date != d:
+            if current_date is not None:
+                lines.append("")
+            current_date = d
+            lines.append(d.isoformat())
+        start_str = a.start_time.strftime("%H:%M") if a.start_time else "--:--"
+        end_str = a.end_time.strftime("%H:%M") if a.end_time else "--:--"
+        hours = a.duration_minutes // 60
+        mins = a.duration_minutes % 60
+        dur_str = f"{hours}h {mins}m" if hours else f"{mins}m"
+        label = "No time assigned" if a.no_time_assigned else f"{start_str}–{end_str}"
+        lines.append(f"- {a.task.name}: {label} ({dur_str})")
+
+    content = "\n".join(lines) + "\n"
+    filename = "task-log.txt"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return PlainTextResponse(content, headers=headers)
 
 
 @router.post("", response_model=ActivityResponse)

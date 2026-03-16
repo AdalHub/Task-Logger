@@ -40,6 +40,14 @@ export interface StatsByTask {
   total_hours: number;
 }
 
+export interface StatsTimeSeriesPoint {
+  date: string;
+  task_id: number;
+  task_name: string;
+  task_color: string;
+  hours: number;
+}
+
 export const api = {
   async getTasks(): Promise<Task[]> {
     const r = await fetch(`${API_BASE}/api/tasks`);
@@ -65,11 +73,19 @@ export const api = {
     const data = await r.json();
     return data;
   },
-  async getActivities(params?: { day?: string; from_date?: string; to_date?: string }): Promise<Activity[]> {
+  async getActivities(params?: {
+    day?: string;
+    from_date?: string;
+    to_date?: string;
+    from_datetime?: string;
+    to_datetime?: string;
+  }): Promise<Activity[]> {
     const sp = new URLSearchParams();
     if (params?.day) sp.set('day', params.day);
     if (params?.from_date) sp.set('from_date', params.from_date);
     if (params?.to_date) sp.set('to_date', params.to_date);
+    if (params?.from_datetime) sp.set('from_datetime', params.from_datetime);
+    if (params?.to_datetime) sp.set('to_datetime', params.to_datetime);
     const q = sp.toString();
     const r = await fetch(`${API_BASE}/api/activities${q ? `?${q}` : ''}`);
     if (!r.ok) throw new Error(await r.text());
@@ -87,6 +103,32 @@ export const api = {
     const r = await fetch(`${API_BASE}/api/activities/stats${sp.toString() ? `?${sp}` : ''}`);
     if (!r.ok) throw new Error(await r.text());
     return r.json();
+  },
+  async getStatsTimeSeries(from_date?: string, to_date?: string): Promise<StatsTimeSeriesPoint[]> {
+    const sp = new URLSearchParams();
+    if (from_date) sp.set('from_date', from_date);
+    if (to_date) sp.set('to_date', to_date);
+    const r = await fetch(`${API_BASE}/api/activities/stats/time_series${sp.toString() ? `?${sp}` : ''}`);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+  async downloadLog(from_date?: string, to_date?: string): Promise<void> {
+    const sp = new URLSearchParams();
+    if (from_date) sp.set('from_date', from_date);
+    if (to_date) sp.set('to_date', to_date);
+    const url = `${API_BASE}/api/activities/export${sp.toString() ? `?${sp}` : ''}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(await r.text());
+    const blob = await r.blob();
+    const now = new Date();
+    const suffix = now.toISOString().slice(0, 10);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `task-log-${suffix}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
   },
   async startStopwatch(taskId: number): Promise<Activity> {
     const r = await fetch(`${API_BASE}/api/activities`, {

@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react'
 import Log from './sections/Log'
 import Activity from './sections/Activity'
 import Tasks from './sections/Tasks'
+import Courses from './sections/Courses'
 import Settings from './sections/Settings'
 import HotkeySetup, { hasHotkeyBeenSet } from './sections/HotkeySetup'
 import './App.css'
 
-type Section = 'log' | 'activity' | 'tasks'
+type Section = 'log' | 'activity' | 'tasks' | 'courses'
 
 export default function App() {
   const [section, setSection] = useState<Section>('log')
@@ -40,6 +41,12 @@ export default function App() {
           >
             Tasks
           </button>
+          <button
+            className={section === 'courses' ? 'active' : ''}
+            onClick={() => setSection('courses')}
+          >
+            Courses
+          </button>
         </nav>
         <button className="settings-btn" onClick={() => setShowSettings(true)} aria-label="Settings">
           ⚙
@@ -49,6 +56,7 @@ export default function App() {
         {section === 'log' && <Log onRefresh={() => {}} />}
         {section === 'activity' && <Activity />}
         {section === 'tasks' && <Tasks onTaskChange={() => {}} />}
+        {section === 'courses' && <Courses />}
       </main>
       {showSettings && (
         <Settings onClose={() => setShowSettings(false)} />
